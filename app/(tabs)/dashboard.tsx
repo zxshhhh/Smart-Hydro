@@ -10,6 +10,9 @@ import {
 import axios from "axios";
 import Slider from "@react-native-community/slider";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import SensorStatusCard from "@/components/sensor-status-card";
+import AIInsightCard from "@/components/ai-insight-card";
+
 
 interface Plant {
   id: string;
@@ -29,13 +32,12 @@ export default function DashboardPage() {
   const [repeatDaily, setRepeatDaily] = useState(true);
   const [scheduleDuration, setScheduleDuration] = useState(5);
   const [plants, setPlants] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  const BASE_URL = "http://192.168.1.13:5000";
+  const DATA_URL = "http://192.168.1.13:5000";
 
   const fetchPlants = async () => {
     try {
-      const res = await axios.get(`${BASE_URL}/plants`);
+      const res = await axios.get(`${DATA_URL}/plants`);
       setPlants(res.data);
     } catch (err) {
       console.log("Error fetching plants:", err.message);
@@ -51,18 +53,18 @@ export default function DashboardPage() {
 
   const handlePumpOn = async () => {
     setIsWatering(true);
-    await axios.post(`${BASE_URL}/water/on`);
+    await axios.post(`${DATA_URL}/water/on`);
   };
 
   const handlePumpOff = async () => {
     setIsWatering(false);
-    await axios.post(`${BASE_URL}/water/off`);
+    await axios.post(`${DATA_URL}/water/off`);
   };
 
   const handleDurationWater = async () => {
     setIsWatering(true);
 
-    await axios.post(`${BASE_URL}/water/duration`, {
+    await axios.post(`${DATA_URL}/water/duration`, {
       seconds: duration * 60,
     });
 
@@ -79,7 +81,7 @@ export default function DashboardPage() {
         key={type}
         onPress={async () => {
           setMode(type);
-          await axios.post(`${BASE_URL}/mode`, { mode: type });
+          await axios.post(`${DATA_URL}/mode`, { mode: type });
         }}
         style={[
           styles.modeButton,
@@ -254,6 +256,51 @@ export default function DashboardPage() {
         <Text style={styles.summaryText}>💧 Water Today: 1.4L</Text>
         <Text style={styles.summaryText}>🧠 Conservation Score: 92%</Text>
       </View>
+      <Text style={styles.sectionTitle}>Sensor Status</Text>
+      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+        <SensorStatusCard
+          title="Soil Moisture"
+          value={42}
+          unit="%"
+          icon="💧"
+          min={30}
+          max={60}
+        />
+        <SensorStatusCard
+          title="Temperature"
+          value={31}
+          unit="°C"
+          icon="🌡"
+          min={18}
+          max={30}
+        />
+      </View>
+      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+        <SensorStatusCard
+          title="Humidity"
+          value={75}
+          unit="%"
+          icon="💨"
+          min={40}
+          max={70}
+        />
+        <SensorStatusCard
+          title="Water Tank"
+          value={65}
+          unit="%"
+          icon="🚰"
+          min={20}
+          max={100}
+        />
+      </View>
+      <AIInsightCard
+        moisture={plants.moisture || 0}
+        temperature={plants.temperature || 0}
+        humidity={plants.humidity || 0}
+        onApply={() => {
+          fetchPlants(); // example
+        }}
+      />
     </ScrollView>
   )
 }
