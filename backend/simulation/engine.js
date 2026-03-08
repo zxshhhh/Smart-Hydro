@@ -31,7 +31,8 @@ function startSimulation(db) {
         if (wateringNow) {
           // 💧 Slowly increase moisture
           moisture += randomBetween(1, 2);
-          humidity += 0.8;
+          humidity += 0.6;
+          waterUsage += 0.2; // Track water usage
         } else {
           // 🌱 Slowly decrease moisture
           moisture -= randomBetween(0.3, 0.8);
@@ -41,12 +42,13 @@ function startSimulation(db) {
         moisture = clamp(moisture, 10, 100);
         temperature = clamp(temperature, 20, 40);
         humidity = clamp(humidity, 10, 90);
+        waterUsage = clamp(plant.waterUsage + (wateringNow ? 0.2 : 0), 0, 100);
 
         db.run(
           `UPDATE plants 
-           SET moisture=?, temperature=?, humidity=? 
+           SET moisture=?, temperature=?, humidity=?, waterUsage=?
            WHERE id=?`,
-          [moisture, temperature, humidity, plant.id]
+          [moisture, temperature, humidity, waterUsage, plant.id]
         );
       });
     });

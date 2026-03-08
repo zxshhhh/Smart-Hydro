@@ -31,7 +31,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="plant-health"
+        name="plantHealth"
         options={{
           title: 'Plant Health',
           tabBarIcon: ({ color, size }) => (

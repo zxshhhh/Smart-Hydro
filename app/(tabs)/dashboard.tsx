@@ -10,9 +10,8 @@ import {
 import axios from "axios";
 import Slider from "@react-native-community/slider";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import SensorStatusCard from "@/components/sensor-status-card";
-import AIInsightCard from "@/components/ai-insight-card";
-
+import SensorStatusCard from "@/components/sensorStatusCard";
+import AIInsightCard from "@/components/aiInsightCard";
 
 interface Plant {
   id: string;
@@ -46,7 +45,6 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchPlants();
-
     const interval = setInterval(fetchPlants, 2000); // live refresh
     return () => clearInterval(interval);
   }, []);
@@ -100,216 +98,248 @@ export default function DashboardPage() {
     );
   };
 
+  const sensorStatus = React.useMemo(() => {
+    if (!plants.length) return [];
+
+    const avg = (key: string) =>
+      plants.reduce((sum, p) => sum + (p[key] || 0), 0) / plants.length;
+
+    return [
+      {
+        key: "moisture",
+        title: "Soil Moisture",
+        value: avg("moisture"),
+        unit: "%",
+        icon: "💧",
+        min: 30,
+        max: 60,
+      },
+      {
+        key: "temperature",
+        title: "Temperature",
+        value: avg("temperature"),
+        unit: "°C",
+        icon: "🌡",
+        min: 18,
+        max: 30,
+      },
+      {
+        key: "humidity",
+        title: "Humidity",
+        value: avg("humidity"),
+        unit: "%",
+        icon: "💨",
+        min: 40,
+        max: 70,
+      },
+      {
+        key: "waterTank",
+        title: "Water Tank",
+        value: plants[0]?.waterUsage
+          ? Math.max(0, 100 - plants[0].waterUsage * 10)
+          : 100,
+        unit: "%",
+        icon: "🚰",
+        min: 20,
+        max: 100,
+      },
+    ];
+  }, [plants]);
+
   return (
-    <ScrollView style={styles.container}>
-      {/* Mode Selector */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Watering Mode</Text>
-        <View style={styles.modeContainer}>
-          {["Manual", "Automatic", "Schedule"].map(renderModeButton)}
-        </View>
-        {/* ===================== MANUAL MODE ===================== */}
-        {mode === "Manual" && (
-          <View style={{ marginTop: 20 }}>
-            <Text style={styles.sectionTitle}>Manual Pump Control</Text>
-            <View style={styles.manualButtonsRow}>
+    <View style={styles.body}>
+      <ScrollView style={styles.container}>
+        {/* Mode Selector */}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Watering Mode</Text>
+          <View style={styles.modeContainer}>
+            {["Manual", "Automatic", "Schedule"].map(renderModeButton)}
+          </View>
+          {/* ===================== MANUAL MODE ===================== */}
+          {mode === "Manual" && (
+            <View style={{ marginTop: 20 }}>
+              <Text style={styles.sectionTitle}>Manual Pump Control</Text>
+              <View style={styles.manualButtonsRow}>
+                <TouchableOpacity
+                  style={[
+                    styles.pumpButton,
+                    isWatering && styles.activePump,
+                  ]}
+                  onPress={handlePumpOn}
+                >
+                  <Text style={styles.pumpText}>ON</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.pumpButtonOff}
+                  onPress={handlePumpOff}
+                >
+                  <Text style={styles.pumpText}>OFF</Text>
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.durationLabel}>
+                Auto Stop Duration: {duration}m
+              </Text>
+              <Slider
+                minimumValue={1}
+                maximumValue={5}
+                step={1}
+                value={duration}
+                onValueChange={setDuration}
+                minimumTrackTintColor="#22C55E"
+                maximumTrackTintColor="#334155"
+                thumbTintColor="#22C55E"
+              />
               <TouchableOpacity
-                style={[
-                  styles.pumpButton,
-                  isWatering && styles.activePump,
-                ]}
-                onPress={handlePumpOn}
+                style={styles.autoDurationButton}
+                onPress={handleDurationWater}
               >
-                <Text style={styles.pumpText}>ON</Text>
+                <Text style={styles.autoDurationText}>
+                  💧 Water For Duration
+                </Text>
               </TouchableOpacity>
 
+              {isWatering && (
+                <Text style={styles.wateringStatus}>
+                  💧 Pump is Running...
+                </Text>
+              )}
+            </View>
+          )}
+          {/* ===================== SCHEDULE MODE ===================== */}
+          {mode === "Schedule" && (
+            <View style={{ marginTop: 20 }}>
+              <Text style={styles.sectionTitle}>Schedule Setup</Text>
+
               <TouchableOpacity
-                style={styles.pumpButtonOff}
-                onPress={handlePumpOff}
+                style={styles.timeButton}
+                onPress={() => setShowPicker(true)}
               >
-                <Text style={styles.pumpText}>OFF</Text>
+                <Text style={styles.timeText}>
+                  ⏰ {scheduleTime.toLocaleTimeString()}
+                </Text>
               </TouchableOpacity>
-            </View>
-            <Text style={styles.durationLabel}>
-              Auto Stop Duration: {duration}m
-            </Text>
-            <Slider
-              minimumValue={1}
-              maximumValue={5}
-              step={1}
-              value={duration}
-              onValueChange={setDuration}
-              minimumTrackTintColor="#22C55E"
-              maximumTrackTintColor="#334155"
-              thumbTintColor="#22C55E"
-            />
-            <TouchableOpacity
-              style={styles.autoDurationButton}
-              onPress={handleDurationWater}
-            >
-              <Text style={styles.autoDurationText}>
-                💧 Water For Duration
+              {showPicker && (
+                <DateTimePicker
+                  value={scheduleTime}
+                  mode="time"
+                  is24Hour={true}
+                  display="default"
+                  onChange={(event, selectedDate) => {
+                    setShowPicker(false);
+                    if (selectedDate) setScheduleTime(selectedDate);
+                  }}
+                />
+              )}
+              <View style={styles.repeatRow}>
+                <Text style={styles.repeatText}>Repeat Daily</Text>
+                <Switch
+                  value={repeatDaily}
+                  onValueChange={setRepeatDaily}
+                />
+              </View>
+              <Text style={styles.durationLabel}>
+                Duration: {scheduleDuration}s
               </Text>
-            </TouchableOpacity>
-
-            {isWatering && (
-              <Text style={styles.wateringStatus}>
-                💧 Pump is Running...
-              </Text>
-            )}
-          </View>
-        )}
-        {/* ===================== SCHEDULE MODE ===================== */}
-        {mode === "Schedule" && (
-          <View style={{ marginTop: 20 }}>
-            <Text style={styles.sectionTitle}>Schedule Setup</Text>
-
-            <TouchableOpacity
-              style={styles.timeButton}
-              onPress={() => setShowPicker(true)}
-            >
-              <Text style={styles.timeText}>
-                ⏰ {scheduleTime.toLocaleTimeString()}
-              </Text>
-            </TouchableOpacity>
-            {showPicker && (
-              <DateTimePicker
-                value={scheduleTime}
-                mode="time"
-                is24Hour={true}
-                display="default"
-                onChange={(event, selectedDate) => {
-                  setShowPicker(false);
-                  if (selectedDate) setScheduleTime(selectedDate);
-                }}
+              <Slider
+                minimumValue={1}
+                maximumValue={30}
+                step={1}
+                value={scheduleDuration}
+                onValueChange={setScheduleDuration}
+                minimumTrackTintColor="#38BDF8"
+                maximumTrackTintColor="#334155"
+                thumbTintColor="#38BDF8"
               />
-            )}
-            <View style={styles.repeatRow}>
-              <Text style={styles.repeatText}>Repeat Daily</Text>
-              <Switch
-                value={repeatDaily}
-                onValueChange={setRepeatDaily}
-              />
+              <View style={styles.scheduleSummary}>
+                <Text style={styles.summaryText}>
+                  📅 Scheduled at {scheduleTime.toLocaleTimeString()}
+                </Text>
+                <Text style={styles.summaryText}>
+                  🔁 {repeatDaily ? "Repeats Daily" : "One-time Only"}
+                </Text>
+                <Text style={styles.summaryText}>
+                  💧 Duration: {scheduleDuration}s
+                </Text>
+              </View>
             </View>
-            <Text style={styles.durationLabel}>
-              Duration: {scheduleDuration}s
-            </Text>
-            <Slider
-              minimumValue={1}
-              maximumValue={30}
-              step={1}
-              value={scheduleDuration}
-              onValueChange={setScheduleDuration}
-              minimumTrackTintColor="#38BDF8"
-              maximumTrackTintColor="#334155"
-              thumbTintColor="#38BDF8"
-            />
-            <View style={styles.scheduleSummary}>
-              <Text style={styles.summaryText}>
-                📅 Scheduled at {scheduleTime.toLocaleTimeString()}
-              </Text>
-              <Text style={styles.summaryText}>
-                🔁 {repeatDaily ? "Repeats Daily" : "One-time Only"}
-              </Text>
-              <Text style={styles.summaryText}>
-                💧 Duration: {scheduleDuration}s
-              </Text>
-            </View>
-          </View>
-        )}
-      </View>
-      {/* Sensor Overview */}
-      <Text style={styles.sectionTitle}>Live Environment</Text>
-      {plants.map((plant) => (
-        <View key={plant.id} style={styles.card}>
-          <Text style={styles.plantName}>{plant.name}</Text>
-          <View style={styles.sensorRow}>
-            <View style={styles.sensorCard}>
-              <Text style={styles.sensorLabel}>Soil Moisture</Text>
-              <Text style={styles.sensorValue}>
-                {plant.moisture?.toFixed(1)}%
-              </Text>
-            </View>
-            <View style={styles.sensorCard}>
-              <Text style={styles.sensorLabel}>Temperature</Text>
-              <Text style={styles.sensorValue}>
-                {plant.temperature?.toFixed(1)}°C
-              </Text>
-            </View>
-            <View style={styles.sensorCard}>
-              <Text style={styles.sensorLabel}>Humidity</Text>
-              <Text style={styles.sensorValue}>
-                {plant.humidity?.toFixed(1)}%
-              </Text>
-            </View>
-          </View>
-          <Text style={styles.plantHealth}>Plant Status:
-            {plant.moisture > 40
-              ? " 🟢 Healthy"
-              : " 🔴 Needs Water"}
-          </Text>
+          )}
         </View>
-      ))}
-      {/* System Summary */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>System Summary</Text>
-        <Text style={styles.summaryText}>💧 Water Today: 1.4L</Text>
-        <Text style={styles.summaryText}>🧠 Conservation Score: 92%</Text>
-      </View>
-      <Text style={styles.sectionTitle}>Sensor Status</Text>
-      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <SensorStatusCard
-          title="Soil Moisture"
-          value={42}
-          unit="%"
-          icon="💧"
-          min={30}
-          max={60}
+        {/* Sensor Overview */}
+        <Text style={styles.sectionTitle}>Live Environment</Text>
+        {plants.map((plant) => (
+          <View key={plant.id} style={styles.card}>
+            <Text style={styles.plantName}>{plant.name}</Text>
+            <View style={styles.sensorRow}>
+              <View style={styles.sensorCard}>
+                <Text style={styles.sensorLabel}>Soil Moisture</Text>
+                <Text style={styles.sensorValue}>
+                  {plant.moisture?.toFixed(1)}%
+                </Text>
+              </View>
+              <View style={styles.sensorCard}>
+                <Text style={styles.sensorLabel}>Temperature</Text>
+                <Text style={styles.sensorValue}>
+                  {plant.temperature?.toFixed(1)}°C
+                </Text>
+              </View>
+              <View style={styles.sensorCard}>
+                <Text style={styles.sensorLabel}>Humidity</Text>
+                <Text style={styles.sensorValue}>
+                  {plant.humidity?.toFixed(1)}%
+                </Text>
+              </View>
+            </View>
+            <Text style={styles.plantHealth}>Plant Status:
+              {plant.moisture > 40
+                ? " 🟢 Healthy"
+                : " 🔴 Needs Water"}
+            </Text>
+          </View>
+        ))}
+        {/* System Summary */}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>System Summary</Text>
+          <Text style={styles.summaryText}>💧 Water Today: 1.4L</Text>
+          <Text style={styles.summaryText}>🧠 Conservation Score: 92%</Text>
+        </View>
+        <Text style={styles.sectionTitle}>Sensor Status</Text>
+        <View style={styles.sensorGrid}>
+          {sensorStatus.map((sensor) => (
+            <SensorStatusCard
+              key={sensor.key}
+              title={sensor.title}
+              value={sensor.value}
+              unit={sensor.unit}
+              icon={sensor.icon}
+              min={sensor.min}
+              max={sensor.max}
+            />
+          ))}
+        </View>
+        <AIInsightCard
+          moisture={plants.moisture}
+          temperature={plants.temperature}
+          humidity={plants.humidity}
+          onApply={() => {
+            fetchPlants(); // example
+          }}
         />
-        <SensorStatusCard
-          title="Temperature"
-          value={31}
-          unit="°C"
-          icon="🌡"
-          min={18}
-          max={30}
-        />
-      </View>
-      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <SensorStatusCard
-          title="Humidity"
-          value={75}
-          unit="%"
-          icon="💨"
-          min={40}
-          max={70}
-        />
-        <SensorStatusCard
-          title="Water Tank"
-          value={65}
-          unit="%"
-          icon="🚰"
-          min={20}
-          max={100}
-        />
-      </View>
-      <AIInsightCard
-        moisture={plants.moisture || 0}
-        temperature={plants.temperature || 0}
-        humidity={plants.humidity || 0}
-        onApply={() => {
-          fetchPlants(); // example
-        }}
-      />
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
+  body: {
+    flex: 1,
+    backgroundColor: "#0B1220",
+  },
   container: {
     flex: 1,
     backgroundColor: "#0B1220",
     padding: 20,
+    marginBottom: 20,
   },
   header: {
     marginBottom: 20,
@@ -479,5 +509,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 15,
   },
-
+  sensorGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+  },
 })

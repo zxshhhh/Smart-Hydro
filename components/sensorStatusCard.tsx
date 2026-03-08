@@ -25,9 +25,9 @@ export default function SensorStatusCard({
   };
 
   const getStatusColor = () => {
-    if (value < min) return "#EF4444"; // red
-    if (value > max) return "#F59E0B"; // yellow
-    return "#22C55E"; // green
+    if (value < min) return "#EF4444";
+    if (value > max) return "#F59E0B";
+    return "#22C55E";
   };
 
   return (
@@ -38,7 +38,7 @@ export default function SensorStatusCard({
       </View>
 
       <Text style={styles.value}>
-        {value}
+        {value?.toFixed(1)}
         <Text style={styles.unit}> {unit}</Text>
       </Text>
 
@@ -70,47 +70,39 @@ const styles = StyleSheet.create({
     width: "48%",
     marginBottom: 15,
   },
-
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 10,
   },
-
   icon: {
     fontSize: 18,
     marginRight: 8,
   },
-
   title: {
     color: "#94A3B8",
     fontSize: 13,
   },
-
   value: {
     color: "#FFFFFF",
     fontSize: 26,
     fontWeight: "bold",
   },
-
   unit: {
     fontSize: 14,
     color: "#64748B",
   },
-
   statusRow: {
     flexDirection: "row",
     alignItems: "center",
     marginTop: 8,
   },
-
   statusDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
     marginRight: 6,
   },
-
   statusText: {
     fontSize: 12,
     fontWeight: "600",

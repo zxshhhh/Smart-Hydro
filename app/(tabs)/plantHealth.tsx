@@ -49,7 +49,6 @@ export default function PlantHealthPage() {
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.header}>Plant Health</Text>
-
       {plants.map((plant) => (
         <View key={plant.id} style={styles.card}>
           <Text style={styles.plantName}>{plant.name}</Text>

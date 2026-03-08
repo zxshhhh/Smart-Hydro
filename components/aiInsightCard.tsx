@@ -35,7 +35,7 @@ export default function AIInsightCard({
   };
 
   const generateInsight = () => {
-    if (moisture < 35) {
+    if (moisture < 34) {
       return {
         message: "Soil moisture is critically low. Immediate watering recommended.",
         level: "High",
@@ -81,20 +81,15 @@ export default function AIInsightCard({
             <Text style={styles.badgeText}>{insight.level} Risk</Text>
           </View>
         </View>
-
         <Text style={styles.message}>{insight.message}</Text>
-
         {expanded && (
           <>
             <View style={styles.divider} />
-
             <Text style={styles.detailTitle}>Recommended Action:</Text>
             <Text style={styles.detailText}>{insight.action}</Text>
-
             <Text style={styles.confidence}>
               Confidence: {confidence}%
             </Text>
-
             <View style={styles.buttonRow}>
               <TouchableOpacity
                 style={styles.refreshButton}
@@ -102,7 +97,6 @@ export default function AIInsightCard({
               >
                 <Text style={styles.refreshText}>🔄 Recalculate</Text>
               </TouchableOpacity>
-
               <TouchableOpacity
                 style={[styles.applyButton, { backgroundColor: insight.color }]}
                 onPress={onApply}
