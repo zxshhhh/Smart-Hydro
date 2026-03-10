@@ -4,7 +4,7 @@ const db = require("../database");
 
 router.get("/stats", (req, res) => {
   db.get("SELECT * FROM system_stats WHERE id = 1", [], (err, row) => {
-    res.json(row);
+    res.json(row || { totalWaterUsage: 0, conservationScore: 100 });
   });
 });
 

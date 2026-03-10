@@ -35,7 +35,7 @@ export default function AIInsightCard({
   };
 
   const generateInsight = () => {
-    if (moisture < 34) {
+    if (moisture < 35) {
       return {
         message: "Soil moisture is critically low. Immediate watering recommended.",
         level: "High",
@@ -43,7 +43,6 @@ export default function AIInsightCard({
         action: "Start watering now",
       };
     }
-
     if (temperature > 32) {
       return {
         message: "High temperature detected. Increase watering frequency.",
@@ -52,7 +51,6 @@ export default function AIInsightCard({
         action: "Adjust auto schedule",
       };
     }
-
     if (humidity < 40) {
       return {
         message: "Low air humidity may increase evaporation rate.",
@@ -61,7 +59,6 @@ export default function AIInsightCard({
         action: "Monitor humidity",
       };
     }
-
     return {
       message: "Environment conditions are stable. No action needed.",
       level: "Low",

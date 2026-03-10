@@ -22,6 +22,12 @@ db.serialize(() => {
       conservationScore REAL DEFAULT 100
     )
   `);
+
+  db.get("SELECT COUNT(*) AS count FROM system_stats", (err, row) => {
+    if (row && row.count === 0) {
+      db.run("INSERT INTO system_stats (id, totalWaterUsage, conservationScore) VALUES (1, 0, 100)");
+    }
+  });
 });
 
 module.exports = db;

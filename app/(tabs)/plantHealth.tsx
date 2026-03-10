@@ -47,39 +47,42 @@ export default function PlantHealthPage() {
     );
   }
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.header}>Plant Health</Text>
-      {plants.map((plant) => (
-        <View key={plant.id} style={styles.card}>
-          <Text style={styles.plantName}>{plant.name}</Text>
-
-          <Text style={styles.plantData}>
-            🌡 Temperature: {plant.temperature.toFixed(1)}°C
-          </Text>
-
-          <Text style={styles.plantData}>
-            💧 Soil Moisture: {plant.moisture.toFixed(1)}%
-          </Text>
-
-          <Text style={styles.plantData}>
-            💦 Humidity: {plant.humidity.toFixed(1)}%
-          </Text>
-
-          <Text style={styles.usage}>
-            🚰 Water Used: {plant.waterUsage.toFixed(2)} L
-          </Text>
-        </View>
-      ))}
-    </ScrollView>
+    <View style={styles.body}>
+      <ScrollView style={styles.container}>
+        <Text style={styles.header}>Plant Health</Text>
+        {plants.map((plant) => (
+          <View key={plant.id} style={styles.card}>
+            <Text style={styles.plantName}>{plant.name}</Text>
+            <Text style={styles.plantData}>
+              🌡 Temperature: {plant.temperature.toFixed(1)}°C
+            </Text>
+            <Text style={styles.plantData}>
+              💧 Soil Moisture: {plant.moisture.toFixed(1)}%
+            </Text>
+            <Text style={styles.plantData}>
+              💦 Humidity: {plant.humidity.toFixed(1)}%
+            </Text>
+            <Text style={styles.usage}>
+              🚰 Water Used: {plant.waterUsage.toFixed(2)} L
+            </Text>
+          </View>
+        ))}
+      </ScrollView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
+  body: {
+    flex: 1,
+    backgroundColor: "#0B1220",
+  },
   container: {
     flex: 1,
     backgroundColor: "#0B1220",
     padding: 20,
-  },
+    marginBottom: 20,
+   },
   header: {
     color: "#22C55E",
     fontSize: 22,

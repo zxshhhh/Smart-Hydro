@@ -63,12 +63,14 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
+
     justifyContent: 'flex-start', // Align to top
     alignItems: 'flex-end', // Align to right
     paddingTop: 50, // Adjust this based on your header height and status bar
     paddingRight: 10,
   },
   menuContainer: {
+    maxWidth: 600,
     backgroundColor: '#0B1220',
     borderRadius: 5,
     elevation: 5, // Android shadow

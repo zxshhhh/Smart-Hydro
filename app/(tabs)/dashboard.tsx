@@ -30,7 +30,8 @@ export default function DashboardPage() {
   const [showPicker, setShowPicker] = useState(false);
   const [repeatDaily, setRepeatDaily] = useState(true);
   const [scheduleDuration, setScheduleDuration] = useState(5);
-  const [plants, setPlants] = useState([]);
+  const [plants, setPlants] = useState<Plant[]>([]);
+  const [systemStats, setSystemStats] = useState({ totalWaterUsage: 0, conservationScore: 100 });
 
   const DATA_URL = "http://192.168.1.13:5000";
 
@@ -38,14 +39,27 @@ export default function DashboardPage() {
     try {
       const res = await axios.get(`${DATA_URL}/plants`);
       setPlants(res.data);
-    } catch (err) {
+    } catch (err: any) {
       console.log("Error fetching plants:", err.message);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      const res = await axios.get(`${DATA_URL}/system/stats`);
+      if (res.data) setSystemStats(res.data);
+    } catch (err: any) {
+      console.log("Error fetching stats:", err.message);
     }
   };
 
   useEffect(() => {
     fetchPlants();
-    const interval = setInterval(fetchPlants, 2000); // live refresh
+    fetchStats();
+    const interval = setInterval(() => {
+      fetchPlants();
+      fetchStats();
+    }, 2000); // live refresh
     return () => clearInterval(interval);
   }, []);
 
@@ -101,8 +115,8 @@ export default function DashboardPage() {
   const sensorStatus = React.useMemo(() => {
     if (!plants.length) return [];
 
-    const avg = (key: string) =>
-      plants.reduce((sum, p) => sum + (p[key] || 0), 0) / plants.length;
+    const avg = (key: keyof Plant) =>
+      plants.reduce((sum, p) => sum + ((p[key] as number) || 0), 0) / plants.length;
 
     return [
       {
@@ -133,12 +147,10 @@ export default function DashboardPage() {
         max: 70,
       },
       {
-        key: "waterTank",
-        title: "Water Tank",
-        value: plants[0]?.waterUsage
-          ? Math.max(0, 100 - plants[0].waterUsage * 10)
-          : 100,
-        unit: "%",
+        key: "waterUsage",
+        title: "Water Usage",
+        value: avg('waterUsage'),
+        unit: "ml",
         icon: "🚰",
         min: 20,
         max: 100,
@@ -300,8 +312,8 @@ export default function DashboardPage() {
         {/* System Summary */}
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>System Summary</Text>
-          <Text style={styles.summaryText}>💧 Water Today: 1.4L</Text>
-          <Text style={styles.summaryText}>🧠 Conservation Score: 92%</Text>
+          <Text style={styles.summaryText}>💧 Total Water Usage: {(systemStats?.totalWaterUsage || 0).toFixed(1)}L</Text>
+          <Text style={styles.summaryText}>🧠 Conservation Score: {(systemStats?.conservationScore || 100).toFixed(0)}%</Text>
         </View>
         <Text style={styles.sectionTitle}>Sensor Status</Text>
         <View style={styles.sensorGrid}>
@@ -318,9 +330,9 @@ export default function DashboardPage() {
           ))}
         </View>
         <AIInsightCard
-          moisture={plants.moisture}
-          temperature={plants.temperature}
-          humidity={plants.humidity}
+          moisture={plants.length ? plants[0].moisture : 0}
+          temperature={plants.length ? plants[0].temperature : 0}
+          humidity={plants.length ? plants[0].humidity : 0}
           onApply={() => {
             fetchPlants(); // example
           }}
@@ -403,13 +415,19 @@ const styles = StyleSheet.create({
   },
   sensorLabel: {
     color: "#94A3B8",
-    fontSize: 12,
+    fontSize: 10,
   },
   sensorValue: {
     color: "#22C55E",
     fontSize: 20,
     fontWeight: "bold",
     marginTop: 5,
+    borderColor: "#22C55E",
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 5,
+    width: 80,
+    textAlign: "center",
   },
   plantName: {
     color: "#22C55E",

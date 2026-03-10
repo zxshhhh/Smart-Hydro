@@ -5,7 +5,6 @@ import IoIcons from '@expo/vector-icons/Ionicons';
 import DropdownComponent from '../../components/dropdown';
 
 export default function TabLayout() {
-
   return (
     <Tabs
       screenOptions={{
