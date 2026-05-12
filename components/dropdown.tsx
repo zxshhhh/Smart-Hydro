@@ -38,7 +38,7 @@ const DropdownComponent = () => {
       >
         <Pressable style={styles.modalOverlay} onPress={toggleMenu}>
           <View style={styles.menuContainer}>
-            {['Activity History', 'Water History', 'Settings', 'Logout'].map((option) => (
+            {['Logout'].map((option) => (
               <Pressable
                 key={option}
                 style={styles.menuItem}

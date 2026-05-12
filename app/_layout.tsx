@@ -34,7 +34,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#0B1220',
   },
   containerLarge: {
-    maxWidth: 600,
     borderLeftWidth: 1,
     borderRightWidth: 1,
     borderColor: '#1E293B',

@@ -3,6 +3,7 @@ import React from 'react';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import IoIcons from '@expo/vector-icons/Ionicons';
 import DropdownComponent from '../../components/dropdown';
+import Feather from '@expo/vector-icons/Feather';
 
 export default function TabLayout() {
   return (
@@ -30,20 +31,20 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="plantHealth"
+        name="waterNow"
         options={{
-          title: 'Plant Health',
+          title: 'Water Now',
           tabBarIcon: ({ color, size }) => (
             <IoIcons name="leaf" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="notification"
+        name="profile"
         options={{
-          title: 'Notification',
+          title: 'Profile',
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="notifications" size={size} color={color} />
+            <Feather name="user" size={size} color={color} />
           ),
         }}
       />

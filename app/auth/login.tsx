@@ -1,45 +1,64 @@
-import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native'
-import React, { useState } from 'react'
-import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router';
-
-const router = useRouter();
+import React, { useState } from 'react';
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { loginUser } from '../../services/auth';
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const navigation = useRouter();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!username || !password) {
+      Alert.alert('Error', 'Please enter username and password');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await loginUser(username, password);
+      navigation.replace('/dashboard');   // Change to your main screen name
+    } catch (error) {
+      Alert.alert('Login Failed', error.toString());
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#0B1220" }}>
       <View style={styles.container}>
-      <Text style={styles.logo}>🌱 Smart Hydro</Text>
-      <Text style={styles.subtitle}>
-        AI-Powered Autonomous Plant Watering System
-      </Text>
-      <View style={styles.inputContainer}>
-        <TextInput
-          placeholder="Email"
-          placeholderTextColor="#94A3B8"
-          style={styles.input}
-          value={email}
-          onChangeText={setEmail}
-        />
-        <TextInput
-          placeholder="Password"
-          placeholderTextColor="#94A3B8"
-          secureTextEntry
-          style={styles.input}
-          value={password}
-          onChangeText={setPassword}
-        />
+        <Text style={styles.logo}>🌱 Smart Hydro</Text>
+        <Text style={styles.subtitle}>
+          AI-Powered Autonomous Plant Watering System
+        </Text>
+        <View style={styles.inputContainer}>
+          <TextInput
+            placeholder="Username"
+            placeholderTextColor="#94A3B8"
+            style={styles.input}
+            value={username}
+            onChangeText={setUsername}
+          />
+          <TextInput
+            placeholder="Password"
+            placeholderTextColor="#94A3B8"
+            secureTextEntry
+            style={styles.input}
+            value={password}
+            onChangeText={setPassword}
+          />
+        </View>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleLogin}
+        >
+          <Text style={styles.buttonText}>Login</Text>
+        </TouchableOpacity>
+        <Text style={styles.footer}>Smart Watering • Smart Living</Text>
       </View>
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => router.replace("/dashboard")}
-      >
-        <Text style={styles.buttonText}>Login</Text>
-      </TouchableOpacity>
-      <Text style={styles.footer}>Smart Watering • Smart Living</Text>
-    </View>
     </SafeAreaView>
   )
 }
